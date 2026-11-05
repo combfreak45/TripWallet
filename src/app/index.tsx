@@ -5,6 +5,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { getAllTrips } from '../db/database';
 import { Trip } from '../types';
 import TripCard from '../components/TripCard';
+import Footer from '../components/Footer';
 import { colors } from '../theme/colors';
 
 export default function TripListScreen() {
@@ -45,9 +46,12 @@ export default function TripListScreen() {
               onPress={() => router.push(`/trip/${item.id}`)}
             />
           )}
+          style={styles.list}
           contentContainerStyle={{ paddingVertical: 12 }}
         />
       )}
+
+      <Footer />
     </SafeAreaView>
   );
 }
@@ -72,6 +76,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   addBtnText: { color: colors.surface, fontWeight: '600', fontSize: 14 },
+  list: { flex: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#444' },

@@ -14,6 +14,9 @@ export default function RootLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="add-trip" options={{ title: 'Add Trip' }} />
       <Stack.Screen name="trip/[id]" options={{ title: 'Trip Details' }} />
+      <Stack.Screen name="cards" options={{ title: 'My Cards' }} />
+      <Stack.Screen name="add-card" options={{ title: 'Add Card' }} />
+      <Stack.Screen name="card/[id]" options={{ title: 'Card' }} />
     </Stack>
   );
 }
