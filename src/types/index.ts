@@ -17,3 +17,11 @@ export interface TripDocument {
   size: number;
   createdAt: string;
 }
+
+export interface TravelCard {
+  id: number;
+  label: string;
+  imagePath: string; // local URI of the saved photo/scan or document
+  fileType: 'image' | 'document';
+  createdAt: string; // ISO
+}

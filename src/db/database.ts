@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { Trip, TripDocument } from '../types';
+import { Trip, TripDocument, TravelCard } from '../types';
 
 const db = SQLite.openDatabaseSync('tripwallet.db');
 
@@ -24,7 +24,43 @@ db.execSync(`
     createdAt TEXT NOT NULL,
     FOREIGN KEY (tripId) REFERENCES trips(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS travel_cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    label TEXT NOT NULL,
+    imagePath TEXT NOT NULL,
+    fileType TEXT NOT NULL DEFAULT 'image',
+    createdAt TEXT NOT NULL
+  );
 `);
+
+// migration: add fileType column to existing travel_cards tables
+try {
+  db.execSync("ALTER TABLE travel_cards ADD COLUMN fileType TEXT NOT NULL DEFAULT 'image'");
+} catch {
+  // column already exists
+}
+
+// migration: remove old 'type' column (rename table → recreate → copy → drop old)
+{
+  const cols = db.getAllSync<{ name: string }>('PRAGMA table_info(travel_cards)');
+  if (cols.some(c => c.name === 'type')) {
+    db.execSync('ALTER TABLE travel_cards RENAME TO travel_cards_legacy');
+    db.execSync(`CREATE TABLE travel_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      label TEXT NOT NULL,
+      imagePath TEXT NOT NULL,
+      fileType TEXT NOT NULL DEFAULT 'image',
+      createdAt TEXT NOT NULL
+    )`);
+    try {
+      db.execSync(
+        "INSERT INTO travel_cards (id, label, imagePath, fileType, createdAt) SELECT id, label, imagePath, 'image', createdAt FROM travel_cards_legacy"
+      );
+    } catch { /* no existing rows or missing columns — safe to skip */ }
+    db.execSync('DROP TABLE IF EXISTS travel_cards_legacy');
+  }
+}
 
 export function insertTrip(trip: Omit<Trip, 'id'>): number {
   const result = db.runSync(
@@ -65,4 +101,25 @@ export function getDocumentsByTrip(tripId: number): TripDocument[] {
 
 export function deleteDocument(id: number) {
   db.runSync('DELETE FROM trip_documents WHERE id = ?', [id]);
+}
+
+export function insertCard(card: Omit<TravelCard, 'id'>): number {
+  const result = db.runSync(
+    `INSERT INTO travel_cards (label, imagePath, fileType, createdAt)
+     VALUES (?, ?, ?, ?)`,
+    [card.label, card.imagePath, card.fileType, card.createdAt]
+  );
+  return result.lastInsertRowId;
+}
+
+export function getAllCards(): TravelCard[] {
+  return db.getAllSync<TravelCard>('SELECT * FROM travel_cards ORDER BY createdAt DESC');
+}
+
+export function getCardById(id: number): TravelCard | null {
+  return db.getFirstSync<TravelCard>('SELECT * FROM travel_cards WHERE id = ?', [id]) ?? null;
+}
+
+export function deleteCard(id: number) {
+  db.runSync('DELETE FROM travel_cards WHERE id = ?', [id]);
 }

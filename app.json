@@ -28,7 +28,14 @@
       "expo-sqlite",
       "expo-sharing",
       "@react-native-community/datetimepicker",
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow TripWallet to access your photos to attach card images.",
+          "cameraPermission": "Allow TripWallet to use the camera to scan your cards."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
